@@ -1,0 +1,85 @@
+[
+{
+  "model": "products.category",
+  "pk": 1,
+  "fields": {
+    "name": "Electrónica"
+  }
+},
+{
+  "model": "products.category",
+  "pk": 2,
+  "fields": {
+    "name": "Hogar"
+  }
+},
+{
+  "model": "products.category",
+  "pk": 3,
+  "fields": {
+    "name": "Sin categoría"
+  }
+},
+{
+  "model": "products.category",
+  "pk": 4,
+  "fields": {
+    "name": "Ropa"
+  }
+},
+{
+  "model": "products.product",
+  "pk": 1,
+  "fields": {
+    "name": "Laptop Pro",
+    "category": 1,
+    "description": "Equipo portátil para trabajo y estudio",
+    "price": "19999.00",
+    "is_active": true
+  }
+},
+{
+  "model": "products.product",
+  "pk": 2,
+  "fields": {
+    "name": "Mouse inalámbrico",
+    "category": 1,
+    "description": "Accesorio con conexión Bluetooth",
+    "price": "499.00",
+    "is_active": true
+  }
+},
+{
+  "model": "products.product",
+  "pk": 3,
+  "fields": {
+    "name": "Licuadora",
+    "category": 2,
+    "description": "Electrodoméstico para cocina",
+    "price": "899.00",
+    "is_active": true
+  }
+},
+{
+  "model": "products.product",
+  "pk": 4,
+  "fields": {
+    "name": "Teclado Mecanico",
+    "category": 3,
+    "description": "Teclado RGB",
+    "price": "1200.00",
+    "is_active": true
+  }
+},
+{
+  "model": "products.product",
+  "pk": 5,
+  "fields": {
+    "name": "Camisa Casual",
+    "category": 4,
+    "description": "Camisa de algodon",
+    "price": "850.00",
+    "is_active": true
+  }
+}
+]
