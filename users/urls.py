@@ -13,6 +13,8 @@ router.register(r'users', views.UserApiViewSet, basename='user')
 urlpatterns = [
     path('', include(router.urls)),
     path('auth/me/', views.UserView.as_view(), name='user-me'),
+    path('auth/register/', views.RegisterUserView.as_view(), name='register'),
     path('auth/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('auth/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('soap/country/', views.SoapCountryView.as_view(), name='soap_country'),
 ]

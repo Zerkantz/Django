@@ -30,3 +30,11 @@ db.sqlite3
 media/
 staticfiles/
 Desarrollo Django React.pdf
+
+# Node y Frontend (React / Vite)
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+frontend/.env.local
+frontend/.env.*.local
+manual_frontend.txt

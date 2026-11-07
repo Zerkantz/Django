@@ -161,3 +161,37 @@ class JWTAuthenticationTestCase(TestCase):
         self.assertEqual(response.data['email'], 'jwt_user@tienda.local')
         self.assertEqual(response.data['telefono'], '555-444-3333')
         self.assertNotIn('password', response.data)
+
+
+class RegisterAndSoapTestCase(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+
+    def test_register_new_user_success(self):
+        response = self.client.post('/api/v1/auth/register/', {
+            'username': 'nuevoregistro',
+            'email': 'nuevo@tienda.local',
+            'password': 'NuevoPassword123!',
+            'password_confirm': 'NuevoPassword123!',
+            'telefono': '667-555-8888',
+        })
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertIn('user', response.data)
+        self.assertEqual(response.data['user']['email'], 'nuevo@tienda.local')
+        self.assertEqual(response.data['user']['telefono'], '667-555-8888')
+
+        # Comprobar que el usuario se puede autenticar con el endpoint de token
+        login_resp = self.client.post('/api/v1/auth/token/', {
+            'email': 'nuevo@tienda.local',
+            'password': 'NuevoPassword123!'
+        })
+        self.assertEqual(login_resp.status_code, status.HTTP_200_OK)
+        self.assertIn('access', login_resp.data)
+
+    def test_soap_country_endpoint(self):
+        response = self.client.get('/api/v1/soap/country/?code=MX')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['country_code'], 'MX')
+        self.assertEqual(response.data['country_name'], 'Mexico')
+        self.assertEqual(response.data['capital'], 'Mexico City')
+        self.assertEqual(response.data['protocol'], 'SOAP (WSDL)')

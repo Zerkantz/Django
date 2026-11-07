@@ -1,30 +1,40 @@
-# Tienda Online - Django REST Framework + JWT + Swagger
+# Tienda Online - Full Stack Django REST Framework + ReactJS + SOAP
 
-Proyecto backend desarrollado con **Django 5.2**, **Django REST Framework (DRF)**, autenticación desacoplada **JWT (SimpleJWT)**, documentación interactiva **Swagger OpenAPI (drf-yasg)** y base de datos relacional **MySQL**.
+Proyecto Full Stack integral desarrollado con **Django 5.2**, **Django REST Framework (DRF)**, **ReactJS (Vite)**, autenticación desacoplada **JWT (SimpleJWT)**, consumo de **APIs de Terceros**, integración de **Web Services SOAP (Zeep)**, documentación interactiva **Swagger OpenAPI (drf-yasg)** y base de datos relacional **MySQL**.
 
-> **Práctica académica:** Basada en el manual *"Desarrollo Full Stack con Django y ReactJS"* (páginas 5 a 12), adaptada con temática propia (**Tienda Online**) y corrigiendo fallas críticas de seguridad presentes en el material didáctico original.
+> **Resultado de Aprendizaje (RA2 y RA3):** Basado en el manual *"Desarrollo Full Stack con Django y ReactJS"* (páginas 13 a 37) y la integración de Servicios Web de la Unidad 3, adaptado con temática propia (**Tienda Online**) y suite de pruebas automatizadas al 100%.
 
 ---
 
-## 📌 Características y Adaptaciones Realizadas
+## 📌 Arquitectura y Módulos Implementados
 
-1. **Temática Personalizada (Tienda Online):**
-   - El proyecto adopta la temática de tienda/comercio electrónico en lugar del nombre genérico `restaurante`.
-   - Se refleja en la configuración del proyecto, en el backend y en el título del esquema interactivo de Swagger (`Tienda Online API v1`).
+### 1. Backend en Django REST Framework
+- **Modelo de Usuario Personalizado (`users.User`):**
+  - Autenticación con email: `USERNAME_FIELD = 'email'`.
+  - Campo extra personalizado: `telefono` (`models.CharField(max_length=20, blank=True, null=True)`).
+  - Configurado en el panel **Admin de Django**, serializadores y documentación Swagger.
+- **Autenticación JWT:**
+  - `ACCESS_TOKEN_LIFETIME = timedelta(hours=2)`
+  - `REFRESH_TOKEN_LIFETIME = timedelta(days=7)`
+  - Encabezado: `Authorization: Bearer <token>`
+- **Registro Público:** `POST /api/v1/auth/register/` con validación de seguridad (contraseña mínima de 8 caracteres y confirmación).
+- **Web Service Propio Protegido:** `GET /api/v1/auth/me/` para consultar la información del usuario autenticado sin exponer hashes.
+- **Web Service SOAP Público:** `GET /api/v1/soap/country/?code=<ISO>` que consume el WSDL de `CountryInfoService` mediante la biblioteca `zeep`.
+- **CORS Configurado:** `django-cors-headers` habilitado para comunicación fluida con el frontend React.
 
-2. **Modelo de Usuario Personalizado (`users.User`):**
-   - Hereda de `AbstractUser` de Django.
-   - Autenticación con correo electrónico: `USERNAME_FIELD = 'email'`.
-   - **Campo extra propio:** Se incorporó el atributo `telefono` (`models.CharField(max_length=20, blank=True, null=True)`).
-   - Configurado en el panel **Admin de Django**, en el serializador `UserSerializer` y en la especificación OpenAPI de Swagger.
-
-3. **Configuración de Tiempo de Vida del Token (SimpleJWT):**
-   - `ACCESS_TOKEN_LIFETIME = timedelta(hours=2)` (2 horas de vigencia para el token de acceso).
-   - `REFRESH_TOKEN_LIFETIME = timedelta(days=7)` (7 días para el token de refresco).
-   - Tipo de cabecera: `Authorization: Bearer <access_token>`.
-
-4. **Catálogo de Productos y Categorías (Unidad 1):**
-   - Mantenimiento completo de las aplicaciones previas (`CategoryViewSet`, `ProductViewSet`, cálculo de precio final).
+### 2. Frontend en React (Vite)
+- **Tecnologías:** React 18, React Router DOM v6, Semantic UI React, SASS, Formik, Yup, React Toastify.
+- **Estructura Modular:**
+  - `src/layouts/`: `AdminLayout`, `ClientLayout`, `CommonLayout`.
+  - `src/pages/`: `Dashboard`, `Login`, `Register`, `Home`, `Error404`.
+  - `src/routes/`: Enrutamiento declarativo para áreas administrativas, públicas y comunes.
+- **Gestión de Sesión Reactiva (`AuthContext` & `useAuth`):**
+  - Almacenamiento seguro del Access Token en `localStorage`.
+  - Sincronización automática de perfil con `GET /api/v1/auth/me/`.
+  - Persistencia de sesión al recargar y cierre de sesión centralizado (`logout`).
+- **Integración API de Terceros (Unidad 3):**
+  - Widget en el Dashboard protegido que consume asincrónicamente mediante `fetch()` una API externa de frases/citas inspiracionales (DummyJSON Quotes).
+  - Incluye estados de carga, manejo de fallos y botón interactivo para refrescar datos.
 
 ---
 
@@ -41,97 +51,95 @@ Proyecto backend desarrollado con **Django 5.2**, **Django REST Framework (DRF)*
 
 La API se encuentra versionada bajo el prefijo `/api/v1/`:
 
-### Autenticación y Perfil
-- `POST /api/v1/auth/token/`: Obtención del par de tokens (Access y Refresh) enviando `email` y `password`.
-- `POST /api/v1/auth/token/refresh/`: Renovación del Access Token enviando el Refresh Token.
-- `GET /api/v1/auth/me/`: Consulta de datos personales del usuario autenticado (requiere `Authorization: Bearer <token>`).
-
-### Gestión de Usuarios (CRUD Administrativo)
-- `GET /api/v1/users/`: Listado de usuarios (requiere `is_staff=True`).
-- `POST /api/v1/users/`: Creación de un nuevo usuario.
-- `GET /api/v1/users/{id}/`: Detalle de usuario.
-- `PUT /api/v1/users/{id}/`: Actualización total.
-- `PATCH /api/v1/users/{id}/`: Actualización parcial segura (no altera password si no se envía).
-- `DELETE /api/v1/users/{id}/`: Eliminación de usuario.
+### Autenticación y Usuarios
+- `POST /api/v1/auth/register/`: Registro público de usuarios (valida contraseñas coincidentes y campo `telefono`).
+- `POST /api/v1/auth/token/`: Obtención de JWT (Access y Refresh).
+- `POST /api/v1/auth/token/refresh/`: Renovación del Access Token.
+- `GET /api/v1/auth/me/`: Datos personales del usuario logueado (`Bearer <token>`).
+- `GET`, `POST`, `PUT`, `PATCH`, `DELETE` `/api/v1/users/`: CRUD administrativo protegido (`is_staff=True`).
 
 ### Catálogo de Tienda (Productos y Categorías)
-- `GET`, `POST` `/api/v1/categories/`
-- `GET`, `PUT`, `PATCH`, `DELETE` `/api/v1/categories/{id}/`
-- `GET`, `POST` `/api/v1/products/`
-- `GET`, `PUT`, `PATCH`, `DELETE` `/api/v1/products/{id}/`
+- `GET`, `POST`, `PUT`, `PATCH`, `DELETE` `/api/v1/categories/`
+- `GET`, `POST`, `PUT`, `PATCH`, `DELETE` `/api/v1/products/`
 - `GET` `/api/v1/products/{id}/precio-final/`: Cálculo de precio final con descuento.
 
-### Documentación de la API
+### Web Service SOAP
+- `GET /api/v1/soap/country/?code=MX`: Consumo en tiempo real del WSDL `CountryInfoService` a través de `zeep`.
+
+### Documentación Interactiva
 - **Swagger UI:** `http://127.0.0.1:8000/swagger/`
 - **ReDoc:** `http://127.0.0.1:8000/redoc/`
-- **OpenAPI JSON:** `http://127.0.0.1:8000/swagger/?format=openapi`
 
 ---
 
 ## 🛠️ Instalación y Puesta en Marcha
 
-1. **Clonar el repositorio:**
-   ```bash
-   git clone https://github.com/Zerkantz/Django.git
-   cd Django
-   ```
+### 1. Clonar el repositorio
+```bash
+git clone https://github.com/Zerkantz/Django.git
+cd Django
+```
 
-2. **Crear y activar el entorno virtual:**
-   ```bash
-   python -m venv venv
-   # En Windows:
-   .\venv\Scripts\activate
-   # En Linux/macOS:
-   source venv/bin/activate
-   ```
+### 2. Backend (Django)
+```bash
+# Crear y activar entorno virtual
+python -m venv venv
+.\venv\Scripts\activate   # Windows
+# source venv/bin/activate  # Linux/macOS
 
-3. **Instalar dependencias:**
-   ```bash
-   pip install -r requirements.txt
-   ```
+# Instalar dependencias
+pip install -r requirements.txt
 
-4. **Configurar la base de datos (MySQL):**
-   Asegúrese de tener MySQL corriendo con la base de datos `django_api` o modifique las credenciales en `tienda_online/settings.py`.
+# Aplicar migraciones
+python manage.py migrate
 
-5. **Aplicar migraciones y crear superusuario:**
-   ```bash
-   python manage.py migrate
-   python manage.py createsuperuser
-   ```
+# Iniciar servidor backend
+python manage.py runserver
+```
+> El backend quedará corriendo en `http://127.0.0.1:8000/`.
 
-6. **Ejecutar el servidor de desarrollo:**
-   ```bash
-   python manage.py runserver
-   ```
+### 3. Frontend (React + Vite)
+```bash
+# Entrar al directorio del frontend
+cd frontend
+
+# Instalar dependencias
+npm install
+
+# Iniciar servidor de desarrollo
+npm run dev
+```
+> El frontend estará disponible en `http://127.0.0.1:5173/`.
 
 ---
 
 ## 🧪 Ejecución de Pruebas Automatizadas
 
-El proyecto incluye una suite de 16 pruebas unitarias e integrales en `users/tests.py` y `products/tests.py`:
+El proyecto incluye 18 casos de prueba automatizados para verificar la autenticación, seguridad, endpoints protegidos, registro y servicios SOAP:
 
 ```bash
 python manage.py test
 ```
 
-Salida esperada:
+Resultado de las pruebas:
 ```text
 Creating test database for alias 'default'...
-................
+..................
 ----------------------------------------------------------------------
-Ran 16 tests in 5.8s
+Ran 18 tests in 6.421s
 
 OK
 ```
 
 ---
 
-## 📄 Documentación y Reporte en PDF
+## 📄 Documentación y Reportes en PDF
 
-- **Documento PDF oficial de entrega:** [`Reporte_Practica_Django_DRF_JWT.pdf`](Reporte_Practica_Django_DRF_JWT.pdf)
-- **Capturas de pantalla de evidencia:** Almacenadas en la carpeta [`docs/evidencias/`](docs/evidencias/)
-  - `01_swagger_endpoints.png`: Documentación interactiva Swagger UI.
-  - `02_django_admin_users.png`: Panel Admin de Django con el campo extra `telefono`.
-  - `03_obtencion_token_jwt.png`: Petición `POST /api/v1/auth/token/` con email.
-  - `04_datos_personales_auth_me.png`: Petición `GET /api/v1/auth/me/` con JWT (sin hash).
-  - `05_prueba_seguridad_edicion_sin_password.png`: Prueba de seguridad de actualización sin contraseña.
+- **Reporte Oficial RA2/RA3 (React + JWT + Terceros + SOAP):** [`Reporte_RA2_Django_React_JWT_SOAP.pdf`](Reporte_RA2_Django_React_JWT_SOAP.pdf)
+- **Reporte Práctica 4 (Django + DRF + JWT):** [`Reporte_Practica_Django_DRF_JWT.pdf`](Reporte_Practica_Django_DRF_JWT.pdf)
+- **Capturas de evidencia disponibles en [`docs/evidencias/`](docs/evidencias/):**
+  - `ra2_01_registro_react.png`: Pantalla de Registro en React con campo `telefono`.
+  - `ra2_02_login_react_consola.png`: Login en React mostrando el token JWT en la consola DevTools.
+  - `ra2_03_dashboard_protegido.png`: Dashboard protegido mostrando usuario vía `AuthContext`.
+  - `ra2_04_widget_api_terceros.png`: Widget de API externa de frases inspiracionales.
+  - `ra2_05_consumo_soap.png`: Consumo del servicio SOAP de países desde navegador.
